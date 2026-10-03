@@ -230,19 +230,41 @@
         let snapEvent = parseInt(document.getElementById('snapEvent').value) || 0;
 
         
-        let normalBase = gameData.normal.items.find(item => item.name === selections.rankNormal)
-        let eventBase = gameData.event.items.find(item => item.name === selections.rankEvent)
+        let normalBase = gameData.normal.items.find(item => item.name === selections.rankNormal);
+        let eventBase = gameData.event.items.find(item => item.name === selections.rankEvent);
 
-        let ptSingle = normalBase.pt*(1+charNormal/100)+eventBase.pt*(1+charEvent/100)/(200/normalBase.cp)
-        let badgeSingle = normalBase.badge*(1+snapNormal/100)+eventBase.badge*(1+snapEvent/100)/(200/normalBase.cp)
+        // 防止找不到對應等級時整個計算中斷
+        if (!normalBase || !eventBase) {
+            document.getElementById('result').innerHTML =
+                '⚠️ 找不到對應的場次資料，請重新選擇分數等級。';
+            return;
+        }
 
-        let gameNeeded = Math.max(diffPt/ptSingle, diffBadge/badgeSingle)
-        gameNeeded = Math.ceil(gameNeeded)
-        let fireNeeded = Math.ceil(gameNeeded/5)
-        
-        let outputMessage = `
-            總共需要 ${gameNeeded} 場來達成目標<br>
-            相當於消耗 ${fireNeeded} 火<br>
+        // 保留原本的計算規則：
+        // 一般場 + 活動場（活動場依一般場 CP 換算）
+        const ptFromNormal = normalBase.pt * (1 + charNormal / 100);
+        const ptFromEvent = eventBase.pt * (1 + charEvent / 100) * normalBase.cp / 200;
+        const badgeFromNormal = normalBase.badge * (1 + snapNormal / 100);
+        const badgeFromEvent = eventBase.badge * (1 + snapEvent / 100) * normalBase.cp / 200;
+
+        const ptSingle = ptFromNormal + ptFromEvent;
+        const badgeSingle = badgeFromNormal + badgeFromEvent;
+
+        let gameNeeded = 0;
+
+        if (diffPt > 0 || diffBadge > 0) {
+            const gamesForPt = ptSingle > 0 ? diffPt / ptSingle : 0;
+            const gamesForBadge = badgeSingle > 0 ? diffBadge / badgeSingle : 0;
+            gameNeeded = Math.ceil(Math.max(gamesForPt, gamesForBadge));
+        }
+
+        const fireNeeded = Math.ceil(gameNeeded / 5);
+
+        const outputMessage = `
+            需要增加：${diffPt} pt、${diffBadge} 勳章<br>
+            每場約取得：${ptSingle.toFixed(2)} pt、${badgeSingle.toFixed(2)} 勳章<br><br>
+            <strong>總共需要 ${gameNeeded} 場來達成目標</strong><br>
+            相當於消耗 ${fireNeeded} 火
         `;
 
         document.getElementById('result').innerHTML = outputMessage;
