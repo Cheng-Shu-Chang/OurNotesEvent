@@ -90,6 +90,7 @@
                     <button class="option-btn" onclick="selectOption('rankNormal', 'C', this)">C</button>
                     <button class="option-btn" onclick="selectOption('rankNormal', 'B', this)">B</button>
                     <button class="option-btn" onclick="selectOption('rankNormal', 'A', this)">A</button>
+                    <button class="option-btn" onclick="selectOption('rankNormal', 'S', this)">S</button>
                     <button class="option-btn" onclick="selectOption('rankNormal', 'SS', this)">SS</button>
                 </div>
                 
@@ -115,6 +116,7 @@
                     <button class="option-btn" onclick="selectOption('rankEvent', 'C', this)">C</button>
                     <button class="option-btn" onclick="selectOption('rankEvent', 'B', this)">B</button>
                     <button class="option-btn" onclick="selectOption('rankEvent', 'A', this)">A</button>
+                    <button class="option-btn" onclick="selectOption('rankEvent', 'S', this)">S</button>
                     <button class="option-btn" onclick="selectOption('rankEvent', 'SS', this)">SS</button>
                 </div>
                 
@@ -143,8 +145,8 @@
 
 <script>
     const gameData = {
-        rankNormal: {
-            name: "一般場",
+        normal: {
+            name: "normal",
             items: [
                 {id: 'rank_D', name: 'D', pt: 15, badge: 18, cp:3},
                 {id: 'rank_C', name: 'C', pt: 25, badge: 30, cp:4},
@@ -154,8 +156,8 @@
                 {id: 'rank_SS', name: 'SS', pt: 100, badge: 120, cp:10},
             ],
         },
-        rankEvent: {
-            name:"活動挑戰",
+        event: {
+            name:"event",
             items: [
                 {id: 'rank_D', name: 'D', pt: 1500, badge: 1450},
                 {id: 'rank_C', name: 'C', pt: 2000, badge: 2650},
@@ -168,8 +170,8 @@
     }
 
     let selections = {
-        'rankNormal' = 'D';
-        'rankEvent' = 'D';
+        'rankNormal': 'D',
+        'rankEvent': 'D',
     }
     
     function selectOption(category, value, clickedElement) {
@@ -193,28 +195,41 @@
         clickedElement.classList.add('active');
     }
 
+    function rewardSingleLive(gameData, selections, charNormal, snapNormal, charEvent, snapEvent) {
+        let ptNormal = gameData.normal.items.find(item => item.id === selections['ranknormal'])
+        let 
+        let ptSingle = gameData.normal.items.find(item => item.id === selections['ranknormal']) + gameData.event.items.find(item => item.id === selections['rankEvent'])/
+    }
+
     function calculate() {
+        let presentPt =  parseInt(document.getElementById('presentPt').value) || 0;
+        let goalPt =  parseInt(document.getElementById('goalPt').value) || 0;
+        let diffPt = Math.max(goalPt - presentPt, 0)
+        
+        let presentBadge =  parseInt(document.getElementById('presentBadge').value) || 0;
+        let goalBadge =  parseInt(document.getElementById('goalBadge').value) || 0;
+        let diffBadge = Math.max(goalBadge - presentBadge, 0)
+
+        
         let charNormal = parseInt(document.getElementById('charNormal').value) || 0;
+        let charEvent = parseInt(document.getElementById('charEvent').value) || 0;
         let snapNormal = parseInt(document.getElementById('snapNormal').value) || 0;
+        let snapEvent = parseInt(document.getElementById('snapEvent').value) || 0;
 
-        let oreNeeded = 0;
-        let goldCost = 0;
-        let weaponName = "";
+        
+        let normalBase = gameData.normal.items.find(item => item.id === selections.rankNormal)
+        let eventBase = gameData.event.items.find(item => item.id === selections.rankEvent)
 
-        if (selections.weapon === 'iron') {
-            oreNeeded = weaponCount * 3; 
-            goldCost = weaponCount * (500 + weaponLevel * 200); 
-            weaponName = "鐵劍";
-        } else if (selections.weapon === 'silver') {
-            oreNeeded = weaponCount * 5; 
-            goldCost = weaponCount * (1500 + weaponLevel * 500); 
-            weaponName = "銀劍";
-        }
+        let ptSingle = normalBase.pt*(1+charNormal/100)+eventBase.pt*(1+charEvent/100)/(200/normalBase.cp)
+        let badgeSingle = normalBase.badge*(1+snapNormal/100)+eventBase.badge*(1+snapEvent/100)/(200/normalBase.cp)
+
+        let gameNeeded = Math.max(diffPt/ptSingle, diffBadge/badgeSingle)
+        gameNeeded = Math.celling(gameNeeded)
+        let fireNeeded = Math.celling(gameNeeded/5)
         
         let outputMessage = `
-            製作 <b>${weaponCount}</b> 把 [ +${weaponLevel} ${weaponName} ]，總共需要：<br><br>
-            🪨 礦石：${oreNeeded} 個<br>
-            💰 金幣：${goldCost} G
+            總共需要 ${gameNeeded} 場來達成目標<br>
+            相當於消耗 ${fireNeeded} 火<br>
         `;
 
         document.getElementById('result').innerHTML = outputMessage;
