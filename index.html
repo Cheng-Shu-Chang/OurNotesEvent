@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>遊戲道具計算機</title>
+    <title>OurNotes 火焰計算機</title>
     <style>
         body { font-family: '微軟正黑體', sans-serif; padding: 20px; background-color: #f4f4f9; }
         
@@ -54,7 +54,7 @@
 <body>
 
 <div class="app-container">
-    <h3>🛠️ 總和素材計算機</h3>
+    <h3>Our notes 火焰計算機</h3>
     
     <!-- 開始左右並排的容器 -->
     <div class="two-column-layout">
@@ -63,21 +63,24 @@
         <div class="column">
             <!-- 區塊一：武器設定 -->
             <div class="block">
-                <h4>⚔️ 區塊一：武器設定</h4>
-                <label>材質：</label>
+                <h4>一般場</h4>
+                <label>分數等級</label>
                 <div class="btn-group">
-                    <button class="option-btn active" onclick="selectOption('weapon', 'iron', this)">鐵製</button>
-                    <button class="option-btn" onclick="selectOption('weapon', 'silver', this)">銀製</button>
+                    <button class="option-btn active" onclick="selectOption('rankNormal', 'D', this)">D</button>
+                    <button class="option-btn" onclick="selectOption('rankNormal', 'C', this)">C</button>
+                    <button class="option-btn" onclick="selectOption('rankNormal', 'B', this)">B</button>
+                    <button class="option-btn" onclick="selectOption('rankNormal', 'A', this)">A</button>
+                    <button class="option-btn" onclick="selectOption('rankNormal', 'SS', this)">SS</button>
                 </div>
                 
                 <div class="input-row">
                     <div class="input-item">
-                        <label for="weaponCount">製作數量：</label>
-                        <input type="number" id="weaponCount" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                        <label for="weaponCount">角色加成：</label>
+                        <input type="number" id="charNormal" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
                     </div>
                     <div class="input-item">
-                        <label for="weaponLevel">強化等級：</label>
-                        <input type="number" id="weaponLevel" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                        <label for="weaponLevel">快照加成：</label>
+                        <input type="number" id="snapNormal" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
                     </div>
                 </div>
             </div>
@@ -87,23 +90,44 @@
             <!-- 計算按鈕放在左側最下方 -->
             <button class="calc-btn" onclick="calculate()">計算總計</button>
         </div>
-
-        <!-- 右側欄位：放結果輸出 -->
-        <div class="column">
-            <div class="block output-block">
-                <h4>📊 總計結果</h4>
-                <div id="result">請在左側設定後，點擊計算按鈕...</div>
-            </div>
-        </div>
-
     </div> <!-- 結束並排容器 -->
+
+    <div class="column">
+        <div class="block output-block">
+            <h4>📊 總計結果</h4>
+            <div id="result">請在左側設定後，點擊計算按鈕...</div>
+        </div>
+    </div>
+
+    
 </div>
 
 <script>
-    let selections = {
-        weapon: 'iron'
-    };
-
+    const gameData = {
+        normal: {
+            name: "一般場",
+            items: [
+                {id: 'rank_D', name: 'D', pt: 15, badge: 18, cp:3},
+                {id: 'rank_C', name: 'C', pt: 25, badge: 30, cp:4},
+                {id: 'rank_B', name: 'B', pt: 35, badge: 42, cp:5},
+                {id: 'rank_A', name: 'A', pt: 50, badge: 60, cp:6},
+                {id: 'rank_S', name: 'S', pt: 75, badge: 90, cp:8},
+                {id: 'rank_SS', name: 'SS', pt: 100, badge: 120, cp:10},
+            ],
+        },
+        event: {
+            name:"活動挑戰",
+            items: [
+                {id: 'rank_D', name: 'D', pt: 1500, badge: 1450},
+                {id: 'rank_C', name: 'C', pt: 2000, badge: 2650},
+                {id: 'rank_B', name: 'B', pt: 2550, badge: 3400},
+                {id: 'rank_A', name: 'A', pt: 3250, badge: 3750},
+                {id: 'rank_S', name: 'S', pt: 3900, badge: 4450},
+                {id: 'rank_SS', name: 'SS', pt: 5000, badge: 4950},
+            ],
+        },
+    }
+    
     function selectOption(group, value, clickedBtn) {
         selections[group] = value;
         let parentGroup = clickedBtn.parentElement;
@@ -115,8 +139,8 @@
     }
 
     function calculate() {
-        let weaponCount = parseInt(document.getElementById('weaponCount').value) || 0;
-        let weaponLevel = parseInt(document.getElementById('weaponLevel').value) || 0;
+        let weaponCount = parseInt(document.getElementById('charNormal').value) || 0;
+        let weaponLevel = parseInt(document.getElementById('snapNormal').value) || 0;
 
         let oreNeeded = 0;
         let goldCost = 0;
