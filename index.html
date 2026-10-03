@@ -196,7 +196,7 @@
     function selectOption(category, value, clickedElement) {
         
         // 更新狀態字典
-        selections[category] = value;
+        selections.category = value;
 
         // 透過 DOM 操作來切換按鈕顏色，不需要再寫死 ID
         // a. 找到被點擊按鈕的「父容器」 (也就是 .btn-group 那個 div)
