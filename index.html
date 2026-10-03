@@ -61,7 +61,7 @@
         
         <!-- 左側欄位：放輸入區塊與計算按鈕 -->
         <div class="column">
-            <!-- 區塊一：武器設定 -->
+            <!-- 區塊一：一般場設定 -->
             <div class="block">
                 <h4>一般場</h4>
                 <label>分數等級</label>
@@ -104,7 +104,7 @@
 
 <script>
     const gameData = {
-        normal: {
+        rankNormal: {
             name: "一般場",
             items: [
                 {id: 'rank_D', name: 'D', pt: 15, badge: 18, cp:3},
@@ -115,7 +115,7 @@
                 {id: 'rank_SS', name: 'SS', pt: 100, badge: 120, cp:10},
             ],
         },
-        event: {
+        rankEvent: {
             name:"活動挑戰",
             items: [
                 {id: 'rank_D', name: 'D', pt: 1500, badge: 1450},
@@ -129,7 +129,7 @@
     }
     
     function selectOption(group, value, clickedBtn) {
-        selections[group] = value;
+        gameDate[group] = value;
         let parentGroup = clickedBtn.parentElement;
         let buttons = parentGroup.getElementsByClassName('option-btn');
         for(let i = 0; i < buttons.length; i++) {
@@ -139,8 +139,8 @@
     }
 
     function calculate() {
-        let weaponCount = parseInt(document.getElementById('charNormal').value) || 0;
-        let weaponLevel = parseInt(document.getElementById('snapNormal').value) || 0;
+        let charNormal = parseInt(document.getElementById('charNormal').value) || 0;
+        let snapNormal = parseInt(document.getElementById('snapNormal').value) || 0;
 
         let oreNeeded = 0;
         let goldCost = 0;
