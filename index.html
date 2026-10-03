@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊戲道具計算機</title>
+    <style>
+        body { font-family: '微軟正黑體', sans-serif; padding: 20px; background-color: #f4f4f9; }
+        
+        /* 1. 將最大寬度放寬，才有足夠的空間並排 */
+        .app-container { max-width: 800px; margin: 0 auto; }
+        
+        /* --- 新增：左右並排的大排版 --- */
+        .two-column-layout { 
+            display: flex;      /* 啟動彈性排版，讓裡面的元素並排 */
+            gap: 20px;          /* 左右兩個區塊中間的間距 */
+            align-items: stretch; /* 讓左右兩邊的高度自動對齊一樣高 */
+        }
+        /* 讓左右兩欄各佔 50% 寬度 */
+        .column { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+        }
 
+        .block { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        
+        /* 讓右側的輸出區塊能填滿整個高度，看起來更對稱 */
+        .output-block { background: #e8f4f8; border: 2px solid #b3e0ff; flex: 1; margin-bottom: 0; }
+        
+        /* 按鈕與輸入框樣式 */
+        .btn-group { display: flex; gap: 10px; margin: 10px 0 15px 0; }
+        .option-btn { flex: 1; padding: 10px; background: white; border: 2px solid #ccc; border-radius: 4px; cursor: pointer; color: #666; font-weight: bold; }
+        .option-btn.active { border-color: #007bff; background: #e7f1ff; color: #007bff; }
+        
+        .input-row { display: flex; gap: 15px; }
+        .input-item { flex: 1; } 
+        input { width: 100%; box-sizing: border-box; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* 調整按鈕，讓它貼齊左側底部 */
+        .calc-btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: auto; }
+        .calc-btn:hover { background: #218838; }
+
+        /* --- 新增：手機版響應式設計 (RWD) --- */
+        /* 當螢幕寬度小於 600px (如手機) 時，取消並排，改為上下排列 */
+        @media (max-width: 600px) {
+            .two-column-layout {
+                flex-direction: column;
+            }
+            .output-block { margin-top: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h3>🛠️ 總和素材計算機</h3>
+    
+    <!-- 開始左右並排的容器 -->
+    <div class="two-column-layout">
+        
+        <!-- 左側欄位：放輸入區塊與計算按鈕 -->
+        <div class="column">
+            <!-- 區塊一：武器設定 -->
+            <div class="block">
+                <h4>⚔️ 區塊一：武器設定</h4>
+                <label>材質：</label>
+                <div class="btn-group">
+                    <button class="option-btn active" onclick="selectOption('weapon', 'iron', this)">鐵製</button>
+                    <button class="option-btn" onclick="selectOption('weapon', 'silver', this)">銀製</button>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-item">
+                        <label for="weaponCount">製作數量：</label>
+                        <input type="number" id="weaponCount" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                    </div>
+                    <div class="input-item">
+                        <label for="weaponLevel">強化等級：</label>
+                        <input type="number" id="weaponLevel" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 如果未來有區塊二，可以繼續加在這裡 -->
+            
+            <!-- 計算按鈕放在左側最下方 -->
+            <button class="calc-btn" onclick="calculate()">計算總計</button>
+        </div>
+
+        <!-- 右側欄位：放結果輸出 -->
+        <div class="column">
+            <div class="block output-block">
+                <h4>📊 總計結果</h4>
+                <div id="result">請在左側設定後，點擊計算按鈕...</div>
+            </div>
+        </div>
+
+    </div> <!-- 結束並排容器 -->
+</div>
+
+<script>
+    let selections = {
+        weapon: 'iron'
+    };
+
+    function selectOption(group, value, clickedBtn) {
+        selections[group] = value;
+        let parentGroup = clickedBtn.parentElement;
+        let buttons = parentGroup.getElementsByClassName('option-btn');
+        for(let i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove('active');
+        }
+        clickedBtn.classList.add('active');
+    }
+
+    function calculate() {
+        let weaponCount = parseInt(document.getElementById('weaponCount').value) || 0;
+        let weaponLevel = parseInt(document.getElementById('weaponLevel').value) || 0;
+
+        let oreNeeded = 0;
+        let goldCost = 0;
+        let weaponName = "";
+
+        if (selections.weapon === 'iron') {
+            oreNeeded = weaponCount * 3; 
+            goldCost = weaponCount * (500 + weaponLevel * 200); 
+            weaponName = "鐵劍";
+        } else if (selections.weapon === 'silver') {
+            oreNeeded = weaponCount * 5; 
+            goldCost = weaponCount * (1500 + weaponLevel * 500); 
+            weaponName = "銀劍";
+        }
+        
+        let outputMessage = `
+            製作 <b>${weaponCount}</b> 把 [ +${weaponLevel} ${weaponName} ]，總共需要：<br><br>
+            🪨 礦石：${oreNeeded} 個<br>
+            💰 金幣：${goldCost} G
+        `;
+
+        document.getElementById('result').innerHTML = outputMessage;
+    }
+</script>
+
+</body>
+</html>
