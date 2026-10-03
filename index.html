@@ -128,14 +128,25 @@
         },
     }
     
-    function selectOption(group, value, clickedBtn) {
-        gameDate[group] = value;
-        let parentGroup = clickedBtn.parentElement;
+    function selectOption(category, value, clickedElement) {
+        
+        // 更新狀態字典
+        //selections[category] = value;
+
+        // 透過 DOM 操作來切換按鈕顏色，不需要再寫死 ID
+        // a. 找到被點擊按鈕的「父容器」 (也就是 .btn-group 那個 div)
+        let parentGroup = clickedElement.parentElement;
+        
+        // b. 在這個父容器內，找出所有帶有 'option-btn' 類別的按鈕
         let buttons = parentGroup.getElementsByClassName('option-btn');
-        for(let i = 0; i < buttons.length; i++) {
+        
+        // c. 用迴圈把這個群組內的所有按鈕都清除 active 樣式
+        for (let i = 0; i < buttons.length; i++) {
             buttons[i].classList.remove('active');
         }
-        clickedBtn.classList.add('active');
+        
+        // d. 只把當下被點擊的這個按鈕加上 active 樣式
+        clickedElement.classList.add('active');
     }
 
     function calculate() {
