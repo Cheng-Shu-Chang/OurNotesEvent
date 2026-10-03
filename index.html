@@ -85,7 +85,29 @@
                 </div>
             </div>
             
-            <!-- 如果未來有區塊二，可以繼續加在這裡 -->
+            <!-- 區塊二：活動場設定 -->
+            <div class="block">
+                <h4>活動場</h4>
+                <label>分數等級</label>
+                <div class="btn-group">
+                    <button class="option-btn active" onclick="selectOption('rankEvent', 'D', this)">D</button>
+                    <button class="option-btn" onclick="selectOption('rankEvent', 'C', this)">C</button>
+                    <button class="option-btn" onclick="selectOption('rankEvent', 'B', this)">B</button>
+                    <button class="option-btn" onclick="selectOption('rankEvent', 'A', this)">A</button>
+                    <button class="option-btn" onclick="selectOption('rankEvent', 'SS', this)">SS</button>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-item">
+                        <label for="weaponCount">角色加成：</label>
+                        <input type="number" id="charEvent" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                    </div>
+                    <div class="input-item">
+                        <label for="weaponLevel">快照加成：</label>
+                        <input type="number" id="snapEvent" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                    </div>
+                </div>
+            </div>
             
             <!-- 計算按鈕放在左側最下方 -->
             <button class="calc-btn" onclick="calculate()">計算總計</button>
