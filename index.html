@@ -155,6 +155,7 @@
     <div class='row'>
         <div class="block output-block">
             <h4>📊 總計結果</h4>
+            <div id='result'></div>
         </div>
     </div>
 </div>
@@ -215,143 +216,364 @@
     }
 
     function calculate() {
-        let presentPt =  parseInt(document.getElementById('presentPt').value) || 0;
-        let goalPt =  parseInt(document.getElementById('goalPt').value) || 0;
-        let diffPt = Math.max(goalPt - presentPt, 0)
-        
-        let presentBadge =  parseInt(document.getElementById('presentBadge').value) || 0;
-        let goalBadge =  parseInt(document.getElementById('goalBadge').value) || 0;
-        let diffBadge = Math.max(goalBadge - presentBadge, 0)
+    try {
+        // =========================
+        // 取得輸入值
+        // =========================
+        const presentPt =
+            parseInt(document.getElementById('presentPt').value) || 0;
 
-        
-        let charNormal = parseInt(document.getElementById('charNormal').value) || 0;
-        let charEvent = parseInt(document.getElementById('charEvent').value) || 0;
-        let snapNormal = parseInt(document.getElementById('snapNormal').value) || 0;
-        let snapEvent = parseInt(document.getElementById('snapEvent').value) || 0;
+        const goalPt =
+            parseInt(document.getElementById('goalPt').value) || 0;
 
-        
-        let normalBase = gameData.normal.items.find(item => item.name === selections.rankNormal);
-        let eventBase = gameData.event.items.find(item => item.name === selections.rankEvent);
+        const presentBadge =
+            parseInt(document.getElementById('presentBadge').value) || 0;
+
+        const goalBadge =
+            parseInt(document.getElementById('goalBadge').value) || 0;
+
+        const charNormal =
+            parseInt(document.getElementById('charNormal').value) || 0;
+
+        const charEvent =
+            parseInt(document.getElementById('charEvent').value) || 0;
+
+        const snapNormal =
+            parseInt(document.getElementById('snapNormal').value) || 0;
+
+        const snapEvent =
+            parseInt(document.getElementById('snapEvent').value) || 0;
+
+
+        // =========================
+        // 計算還需要多少 pt / 勳章
+        // =========================
+        const needPt = Math.max(goalPt - presentPt, 0);
+        const needBadge = Math.max(goalBadge - presentBadge, 0);
+
+
+        // =========================
+        // 找到目前選擇的場次
+        // =========================
+        const normalBase = gameData.normal.items.find(
+            item => item.name === selections.rankNormal
+        );
+
+        const eventBase = gameData.event.items.find(
+            item => item.name === selections.rankEvent
+        );
 
         if (!normalBase || !eventBase) {
-            document.getElementById('result').innerHTML =
-                '⚠️ 找不到對應的場次資料，請重新選擇分數等級。';
+            throw new Error("找不到所選擇的場次資料。");
+        }
+
+
+        // =========================
+        // 每場實際取得的 pt / 勳章
+        // =========================
+
+        const normalPt =
+            normalBase.pt * (1 + charNormal / 100);
+
+        const normalBadge =
+            normalBase.badge * (1 + snapNormal / 100);
+
+        const eventPt =
+            eventBase.pt * (1 + charEvent / 100);
+
+        const eventBadge =
+            eventBase.badge * (1 + snapEvent / 100);
+
+
+        if (
+            normalPt <= 0 ||
+            normalBadge <= 0 ||
+            eventPt <= 0 ||
+            eventBadge <= 0
+        ) {
+            throw new Error("場次收益資料無效。");
+        }
+
+
+        // =========================
+        // 已經達成目標
+        // =========================
+
+        if (needPt === 0 && needBadge === 0) {
+
+            document.getElementById('result').innerHTML = `
+                <strong>📊 計算結果</strong><br><br>
+
+                目前已經達成目標！<br><br>
+
+                一般場：0 場<br>
+                活動場：0 場<br>
+                總場數：0 場<br>
+                消耗火：<strong>0 火</strong>
+            `;
+
             return;
         }
 
+
+        // =========================
+        // 最佳解搜尋
+        // =========================
+        //
+        // eventGames = 活動場數
+        //
+        // 對每一個可能的活動場數，
+        // 算出需要多少一般場：
+        //
+        // ① CP 是否足夠
+        // ② pt 是否足夠
+        // ③ 勳章是否足夠
+        //
+        // 最後找最少火的組合。
+        // =========================
+
+        const maxEventByPt =
+            Math.ceil(needPt / eventPt);
+
+        const maxEventByBadge =
+            Math.ceil(needBadge / eventBadge);
+
         /*
-         * 實際遊戲機制：
-         * 1. 每打一場一般場取得 normalBase.cp CP。
-         * 2. 每 200 CP 才能打 1 場活動場。
-         * 3. 因此活動場數與一般場數都必須是整數。
+         * 如果只靠活動場就能完成目標，
+         * 再增加活動場沒有意義。
          *
-         * 這裡不再把活動場平均分攤到每一場一般場，
-         * 而是逐一嘗試可能的活動場數，找出總場數最少的組合。
+         * 因此搜尋到能單靠活動場完成目標的位置即可。
          */
+        const maxEventGames =
+            Math.max(maxEventByPt, maxEventByBadge);
 
-        // 每場實際取得的 pt / 勳章
-        const normalPt = normalBase.pt * (1 + charNormal / 100);
-        const normalBadge = normalBase.badge * (1 + snapNormal / 100);
 
-        const eventPt = eventBase.pt * (1 + charEvent / 100);
-        const eventBadge = eventBase.badge * (1 + snapEvent / 100);
+        let best = null;
 
-        let bestNormalGames = Infinity;
-        let bestEventGames = Infinity;
-        let bestTotalGames = Infinity;
 
-        /*
-         * 活動場不可能需要超過「只打一般場」所需的場數。
-         * 因此以一個合理上限搜尋即可。
-         */
-        const maxEventGames = Math.max(
-            0,
-            Math.ceil(
+        for (
+            let eventGames = 0;
+            eventGames <= maxEventGames;
+            eventGames++
+        ) {
+
+            // =========================
+            // 活動場需要的 CP
+            // =========================
+            //
+            // 例如：
+            // 一般場 3 CP
+            // 1 活動場需要 200 CP
+            //
+            // ceil(200 / 3)
+            // = 67 場一般場
+            //
+            const normalGamesForCP =
+                Math.ceil(
+                    (eventGames * 200) /
+                    normalBase.cp
+                );
+
+
+            // =========================
+            // 活動場打完之後還缺多少 pt
+            // =========================
+
+            const remainingPt =
+                needPt -
+                eventGames * eventPt;
+
+
+            const normalGamesForPt =
+                remainingPt > 0
+                    ? Math.ceil(
+                        remainingPt / normalPt
+                    )
+                    : 0;
+
+
+            // =========================
+            // 活動場打完之後還缺多少勳章
+            // =========================
+
+            const remainingBadge =
+                needBadge -
+                eventGames * eventBadge;
+
+
+            const normalGamesForBadge =
+                remainingBadge > 0
+                    ? Math.ceil(
+                        remainingBadge / normalBadge
+                    )
+                    : 0;
+
+
+            // =========================
+            // 一般場數必須同時滿足：
+            //
+            // CP
+            // pt
+            // 勳章
+            // =========================
+
+            const normalGames =
                 Math.max(
-                    diffPt / Math.max(eventPt, 0.000001),
-                    diffBadge / Math.max(eventBadge, 0.000001)
-                )
-            ) + 1
-        );
+                    normalGamesForCP,
+                    normalGamesForPt,
+                    normalGamesForBadge
+                );
 
-        for (let eventGames = 0; eventGames <= maxEventGames; eventGames++) {
 
-            // 為了打 eventGames 場活動場，至少需要這麼多一般場來取得 200 CP × 活動場數
-            const normalGamesForCP = Math.ceil(
-                (eventGames * 200) / normalBase.cp
-            );
+            // =========================
+            // 總場數
+            // =========================
 
-            // 為了達成 pt，至少需要這麼多一般場
-            const remainingPt = diffPt - eventGames * eventPt;
-            const normalGamesForPt = remainingPt > 0
-                ? Math.ceil(remainingPt / normalPt)
-                : 0;
+            const totalGames =
+                normalGames +
+                eventGames;
 
-            // 為了達成勳章，至少需要這麼多一般場
-            const remainingBadge = diffBadge - eventGames * eventBadge;
-            const normalGamesForBadge = remainingBadge > 0
-                ? Math.ceil(remainingBadge / normalBadge)
-                : 0;
 
-            // 一般場數必須同時滿足 CP、pt、勳章三個條件
-            const normalGames = Math.max(
-                normalGamesForCP,
-                normalGamesForPt,
-                normalGamesForBadge
-            );
+            // =========================
+            // 每 5 場 = 1 火
+            // =========================
 
-            const totalGames = normalGames + eventGames;
+            const fireNeeded =
+                Math.ceil(totalGames / 5);
 
-            // 以總場數最少為主要目標
-            // 若總場數相同，優先選擇活動場較少的方案
+
+            // =========================
+            // 比較最佳方案
+            // =========================
+
             if (
-                totalGames < bestTotalGames ||
+                best === null ||
+
+                // 第一優先：火最少
+                fireNeeded < best.fire ||
+
+                // 第二優先：總場數最少
                 (
-                    totalGames === bestTotalGames &&
-                    eventGames < bestEventGames
+                    fireNeeded === best.fire &&
+                    totalGames < best.totalGames
+                ) ||
+
+                // 第三優先：活動場較少
+                (
+                    fireNeeded === best.fire &&
+                    totalGames === best.totalGames &&
+                    eventGames < best.eventGames
                 )
             ) {
-                bestNormalGames = normalGames;
-                bestEventGames = eventGames;
-                bestTotalGames = totalGames;
+
+                best = {
+                    normalGames: normalGames,
+                    eventGames: eventGames,
+                    totalGames: totalGames,
+                    fire: fireNeeded
+                };
             }
         }
 
-        // 實際消耗火：每 5 場消耗 1 火
-        const fireNeeded = Math.ceil(bestTotalGames / 5);
 
-        // 實際取得的總量
+        // =========================
+        // 沒找到方案
+        // =========================
+
+        if (best === null) {
+            throw new Error("找不到符合條件的組合。");
+        }
+
+
+        // =========================
+        // 計算最後實際得到多少
+        // =========================
+
         const totalPt =
-            bestNormalGames * normalPt +
-            bestEventGames * eventPt;
+            best.normalGames * normalPt +
+            best.eventGames * eventPt;
 
         const totalBadge =
-            bestNormalGames * normalBadge +
-            bestEventGames * eventBadge;
+            best.normalGames * normalBadge +
+            best.eventGames * eventBadge;
 
-        // 實際取得的 CP
-        const totalCp = bestNormalGames * normalBase.cp;
+        const totalCp =
+            best.normalGames * normalBase.cp;
 
-        const outputMessage = `
+        const requiredCp =
+            best.eventGames * 200;
+
+
+        // =========================
+        // 數字格式化
+        // =========================
+
+        function formatNumber(value) {
+            if (Number.isInteger(value)) {
+                return value.toString();
+            }
+
+            return value.toFixed(2);
+        }
+
+
+        // =========================
+        // 顯示結果
+        // =========================
+
+        document.getElementById('result').innerHTML = `
             <strong>📊 最省火方案</strong><br><br>
 
-            一般場：${bestNormalGames} 場<br>
-            活動場：${bestEventGames} 場<br>
-            總場數：${bestTotalGames} 場<br>
-            消耗火：<strong>${fireNeeded} 火</strong><br><br>
+            一般場：
+            <strong>${best.normalGames}</strong> 場<br>
 
-            ──────────────<br>
+            活動場：
+            <strong>${best.eventGames}</strong> 場<br>
 
-            CP：${totalCp} / ${bestEventGames * 200}<br>
-            最終 pt：${Number.isInteger(totalPt) ? totalPt : totalPt.toFixed(2)}<br>
-            最終勳章：${Number.isInteger(totalBadge) ? totalBadge : totalBadge.toFixed(2)}<br><br>
+            總場數：
+            <strong>${best.totalGames}</strong> 場<br>
 
-            目標 pt：${goalPt}<br>
-            目標勳章：${goalBadge}
+            消耗火：
+            <strong>${best.fire} 火</strong><br><br>
+
+
+            ──────────────────<br><br>
+
+
+            CP：
+            ${totalCp} / ${requiredCp}<br>
+
+            最終 pt：
+            ${formatNumber(totalPt)}<br>
+
+            最終勳章：
+            ${formatNumber(totalBadge)}<br><br>
+
+
+            目標 pt：
+            ${goalPt}<br>
+
+            目標勳章：
+            ${goalBadge}
         `;
 
-        document.getElementById('result').innerHTML = outputMessage;
+    } catch (error) {
+
+        // =========================
+        // 錯誤處理
+        // =========================
+
+        console.error("calculate() error:", error);
+
+        document.getElementById('result').innerHTML = `
+            <strong>⚠️ 計算時發生錯誤</strong><br><br>
+
+            ${error.message}<br><br>
+
+            請檢查輸入數值與場次設定。
+        `;
     }
+}
 </script>
 
 </body>
