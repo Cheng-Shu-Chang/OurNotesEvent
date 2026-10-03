@@ -233,38 +233,121 @@
         let normalBase = gameData.normal.items.find(item => item.name === selections.rankNormal);
         let eventBase = gameData.event.items.find(item => item.name === selections.rankEvent);
 
-        // 防止找不到對應等級時整個計算中斷
         if (!normalBase || !eventBase) {
             document.getElementById('result').innerHTML =
                 '⚠️ 找不到對應的場次資料，請重新選擇分數等級。';
             return;
         }
 
-        // 保留原本的計算規則：
-        // 一般場 + 活動場（活動場依一般場 CP 換算）
-        const ptFromNormal = normalBase.pt * (1 + charNormal / 100);
-        const ptFromEvent = eventBase.pt * (1 + charEvent / 100) * normalBase.cp / 200;
-        const badgeFromNormal = normalBase.badge * (1 + snapNormal / 100);
-        const badgeFromEvent = eventBase.badge * (1 + snapEvent / 100) * normalBase.cp / 200;
+        /*
+         * 實際遊戲機制：
+         * 1. 每打一場一般場取得 normalBase.cp CP。
+         * 2. 每 200 CP 才能打 1 場活動場。
+         * 3. 因此活動場數與一般場數都必須是整數。
+         *
+         * 這裡不再把活動場平均分攤到每一場一般場，
+         * 而是逐一嘗試可能的活動場數，找出總場數最少的組合。
+         */
 
-        const ptSingle = ptFromNormal + ptFromEvent;
-        const badgeSingle = badgeFromNormal + badgeFromEvent;
+        // 每場實際取得的 pt / 勳章
+        const normalPt = normalBase.pt * (1 + charNormal / 100);
+        const normalBadge = normalBase.badge * (1 + snapNormal / 100);
 
-        let gameNeeded = 0;
+        const eventPt = eventBase.pt * (1 + charEvent / 100);
+        const eventBadge = eventBase.badge * (1 + snapEvent / 100);
 
-        if (diffPt > 0 || diffBadge > 0) {
-            const gamesForPt = ptSingle > 0 ? diffPt / ptSingle : 0;
-            const gamesForBadge = badgeSingle > 0 ? diffBadge / badgeSingle : 0;
-            gameNeeded = Math.ceil(Math.max(gamesForPt, gamesForBadge));
+        let bestNormalGames = Infinity;
+        let bestEventGames = Infinity;
+        let bestTotalGames = Infinity;
+
+        /*
+         * 活動場不可能需要超過「只打一般場」所需的場數。
+         * 因此以一個合理上限搜尋即可。
+         */
+        const maxEventGames = Math.max(
+            0,
+            Math.ceil(
+                Math.max(
+                    diffPt / Math.max(eventPt, 0.000001),
+                    diffBadge / Math.max(eventBadge, 0.000001)
+                )
+            ) + 1
+        );
+
+        for (let eventGames = 0; eventGames <= maxEventGames; eventGames++) {
+
+            // 為了打 eventGames 場活動場，至少需要這麼多一般場來取得 200 CP × 活動場數
+            const normalGamesForCP = Math.ceil(
+                (eventGames * 200) / normalBase.cp
+            );
+
+            // 為了達成 pt，至少需要這麼多一般場
+            const remainingPt = diffPt - eventGames * eventPt;
+            const normalGamesForPt = remainingPt > 0
+                ? Math.ceil(remainingPt / normalPt)
+                : 0;
+
+            // 為了達成勳章，至少需要這麼多一般場
+            const remainingBadge = diffBadge - eventGames * eventBadge;
+            const normalGamesForBadge = remainingBadge > 0
+                ? Math.ceil(remainingBadge / normalBadge)
+                : 0;
+
+            // 一般場數必須同時滿足 CP、pt、勳章三個條件
+            const normalGames = Math.max(
+                normalGamesForCP,
+                normalGamesForPt,
+                normalGamesForBadge
+            );
+
+            const totalGames = normalGames + eventGames;
+
+            // 以總場數最少為主要目標
+            // 若總場數相同，優先選擇活動場較少的方案
+            if (
+                totalGames < bestTotalGames ||
+                (
+                    totalGames === bestTotalGames &&
+                    eventGames < bestEventGames
+                )
+            ) {
+                bestNormalGames = normalGames;
+                bestEventGames = eventGames;
+                bestTotalGames = totalGames;
+            }
         }
 
-        const fireNeeded = Math.ceil(gameNeeded / 5);
+        // 實際消耗火：每 5 場消耗 1 火
+        const fireNeeded = Math.ceil(bestTotalGames / 5);
+
+        // 實際取得的總量
+        const totalPt =
+            bestNormalGames * normalPt +
+            bestEventGames * eventPt;
+
+        const totalBadge =
+            bestNormalGames * normalBadge +
+            bestEventGames * eventBadge;
+
+        // 實際取得的 CP
+        const totalCp = bestNormalGames * normalBase.cp;
 
         const outputMessage = `
-            需要增加：${diffPt} pt、${diffBadge} 勳章<br>
-            每場約取得：${ptSingle.toFixed(2)} pt、${badgeSingle.toFixed(2)} 勳章<br><br>
-            <strong>總共需要 ${gameNeeded} 場來達成目標</strong><br>
-            相當於消耗 ${fireNeeded} 火
+            <strong>📊 最省火方案</strong><br><br>
+
+            一般場：${bestNormalGames} 場<br>
+            活動場：${bestEventGames} 場<br>
+            總場數：${bestTotalGames} 場<br>
+            消耗火：<strong>${fireNeeded} 火</strong><br><br>
+
+            ──────────────<br>
+
+            CP：${totalCp} / ${bestEventGames * 200}<br>
+            最終 pt：${Number.isInteger(totalPt) ? totalPt : totalPt.toFixed(2)}<br>
+            最終勳章：${Number.isInteger(totalBadge) ? totalBadge : totalBadge.toFixed(2)}<br><br>
+
+            目標 pt：${goalPt}<br>
+            目標勳章：${goalBadge}
         `;
 
         document.getElementById('result').innerHTML = outputMessage;
