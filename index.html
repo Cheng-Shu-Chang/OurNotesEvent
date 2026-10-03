@@ -55,6 +55,26 @@
 
 <div class="app-container">
     <h3>Our notes 火焰計算機</h3>
+
+    <div class='row'>
+        <div class="input-item">
+            <label for="presentPt">目前pt：</label>
+            <input type="number" id="presentPt" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+        </div>
+        <div class="input-item">
+            <label for="presentBadge">目前勳章：</label>
+            <input type="number" id="charEvent" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+        </div>
+        <br>
+        <div class="input-item">
+            <label for="goalPt">目標pt：</label>
+            <input type="number" id="goalPt" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+        </div>
+        <div class="input-item">
+            <label for="goalBadge">目標勳章：</label>
+            <input type="number" id="goalBadge" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+        </div>
+    </div>
     
     <!-- 開始左右並排的容器 -->
     <div class="two-column-layout">
@@ -84,7 +104,7 @@
                     </div>
                 </div>
             </div>
-
+        </div>
         <div class="column">
             <!-- 區塊二：活動場設定 -->
             <div class="block">
