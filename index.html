@@ -67,7 +67,7 @@
             <div class = 'column'>
                 <div class="input-item">
                     <label for="presentBadge">目前勳章：</label>
-                    <input type="number" id="charEvent" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                    <input type="number" id="presentBadge" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
                 </div>
             </div>
         </div>
@@ -196,7 +196,7 @@
     function selectOption(category, value, clickedElement) {
         
         // 更新狀態字典
-        selections.category = value;
+        selections[category] = value;
 
         // 透過 DOM 操作來切換按鈕顏色，不需要再寫死 ID
         // a. 找到被點擊按鈕的「父容器」 (也就是 .btn-group 那個 div)
@@ -212,12 +212,6 @@
         
         // d. 只把當下被點擊的這個按鈕加上 active 樣式
         clickedElement.classList.add('active');
-    }
-
-    function rewardSingleLive(gameData, selections, charNormal, snapNormal, charEvent, snapEvent) {
-        let ptNormal = gameData.normal.items.find(item => item.id === selections['ranknormal'])
-        let 
-        let ptSingle = gameData.normal.items.find(item => item.id === selections['ranknormal']) + gameData.event.items.find(item => item.id === selections['rankEvent'])/
     }
 
     function calculate() {
@@ -236,15 +230,15 @@
         let snapEvent = parseInt(document.getElementById('snapEvent').value) || 0;
 
         
-        let normalBase = gameData.normal.items.find(item => item.id === selections.rankNormal)
-        let eventBase = gameData.event.items.find(item => item.id === selections.rankEvent)
+        let normalBase = gameData.normal.items.find(item => item.name === selections.rankNormal)
+        let eventBase = gameData.event.items.find(item => item.name === selections.rankEvent)
 
         let ptSingle = normalBase.pt*(1+charNormal/100)+eventBase.pt*(1+charEvent/100)/(200/normalBase.cp)
         let badgeSingle = normalBase.badge*(1+snapNormal/100)+eventBase.badge*(1+snapEvent/100)/(200/normalBase.cp)
 
         let gameNeeded = Math.max(diffPt/ptSingle, diffBadge/badgeSingle)
-        gameNeeded = Math.celling(gameNeeded)
-        let fireNeeded = Math.celling(gameNeeded/5)
+        gameNeeded = Math.ceil(gameNeeded)
+        let fireNeeded = Math.ceil(gameNeeded/5)
         
         let outputMessage = `
             總共需要 ${gameNeeded} 場來達成目標<br>
