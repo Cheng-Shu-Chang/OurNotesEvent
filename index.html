@@ -129,13 +129,21 @@
                 </div>
                 
                 <div class="input-row">
-                    <div class="percent-input">
+                    <div class="input-item">
                         <label for="weaponCount">角色加成：</label>
-                        <input type="number" id="charNormal" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                        <div class="percent-input">
+                            <input type="number" id="charNormal" value="0" min="0"
+                                   oninput="this.value = this.value.replace(/\D/g, '')">
+                            <span>%</span>
+                        </div>
                     </div>
-                    <div class="percent-input">
+                    <div class="input-item">
                         <label for="weaponLevel">快照加成：</label>
-                        <input type="number" id="snapNormal" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                        <div class="percent-input">
+                            <input type="number" id="snapNormal" value="0" min="0"
+                                   oninput="this.value = this.value.replace(/\D/g, '')">
+                            <span>%</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -155,13 +163,21 @@
                 </div>
                 
                 <div class="input-row">
-                    <div class="percent-input">
+                    <div class="input-item">
                         <label for="weaponCount">角色加成：</label>
-                        <input type="number" id="charEvent" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                        <div class="percent-input">
+                            <input type="number" id="charEvent" value="0" min="0"
+                                   oninput="this.value = this.value.replace(/\D/g, '')">
+                            <span>%</span>
+                        </div>
                     </div>
-                    <div class="percent-input">
+                    <div class="input-item">
                         <label for="weaponLevel">快照加成：</label>
-                        <input type="number" id="snapEvent" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
+                        <div class="percent-input">
+                            <input type="number" id="snapEvent" value="0" min="0"
+                                   oninput="this.value = this.value.replace(/\D/g, '')">
+                            <span>%</span>
+                        </div>
                     </div>
                 </div>
             </div>
