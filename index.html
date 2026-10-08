@@ -49,6 +49,26 @@
             }
             .output-block { margin-top: 15px; }
         }
+        
+        /*有%符號的輸入框*/
+        .percent-input {
+            position: relative;
+        }
+        
+        .percent-input input {
+            width: 100%;
+            box-sizing: border-box;
+            padding-right: 30px;
+        }
+        
+        .percent-input span {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -109,11 +129,11 @@
                 </div>
                 
                 <div class="input-row">
-                    <div class="input-item">
+                    <div class="percent-input">
                         <label for="weaponCount">角色加成：</label>
                         <input type="number" id="charNormal" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
                     </div>
-                    <div class="input-item">
+                    <div class="percent-input">
                         <label for="weaponLevel">快照加成：</label>
                         <input type="number" id="snapNormal" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
                     </div>
@@ -135,11 +155,11 @@
                 </div>
                 
                 <div class="input-row">
-                    <div class="input-item">
+                    <div class="percent-input">
                         <label for="weaponCount">角色加成：</label>
                         <input type="number" id="charEvent" value="1" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
                     </div>
-                    <div class="input-item">
+                    <div class="percent-input">
                         <label for="weaponLevel">快照加成：</label>
                         <input type="number" id="snapEvent" value="0" min="0" oninput="this.value = this.value.replace(/\D/g, '')">
                     </div>
@@ -154,7 +174,7 @@
     <br>
     <div class='row'>
         <div class="block output-block">
-            <h4>📊 總計結果</h4>
+            <h4>總計結果</h4>
             <div id='result'></div>
         </div>
     </div>
@@ -528,9 +548,6 @@
 
             活動場：
             <strong>${best.eventGames}</strong> 場<br>
-
-            總場數：
-            <strong>${best.totalGames}</strong> 場<br>
 
             消耗火：
             <strong>${best.fire} 火</strong><br><br>
